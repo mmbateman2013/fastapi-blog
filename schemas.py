@@ -1,16 +1,37 @@
 """Module that defines Pydantic Schemas"""
-from pydantic import BaseModel, ConfigDict, Field
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+
+class UserBase(BaseModel):
+    """Base Schema for Users"""
+    username: str = Field(min_length=1, max_length=50)
+    email: EmailStr = Field(max_length=120)
+
+
+class UserCreate(UserBase):
+    """Schema for creating Users"""
+
+
+class UserResponse(UserBase):
+    """Schema for API Response for a User"""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    image_file: str | None
+    image_path: str
 
 
 class PostBase(BaseModel):
     """Base Schema for Blog Posts"""
     title: str = Field(min_length=1, max_length=100)
     content: str = Field(min_length=1)
-    author: str = Field(min_length=1, max_length=50)
 
 
 class PostCreate(PostBase):
     """Schema for creating Blog Posts"""
+    user_id: int #TODO: REMOVE THIS LATER
 
 
 class PostResponse(PostBase):
@@ -18,4 +39,6 @@ class PostResponse(PostBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    date_posted: str
+    user_id: int
+    date_posted: datetime
+    author: UserResponse

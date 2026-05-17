@@ -6,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from schemas import PostCreate, PostResponse
 
 app = FastAPI()
 
@@ -13,7 +14,7 @@ app.mount('/static', StaticFiles(directory='static'), name='static')
 
 templates = Jinja2Templates(directory='templates')
 
-posts: list[dict] = [
+posts: list[PostResponse] = [
     {
         "id": 1,
         "author": "Corey Schafer",
@@ -49,23 +50,38 @@ async def post_page(request: Request, post_id: int):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 
-@app.get('/api/posts')
+@app.get('/api/posts', response_model=list[PostResponse])
 async def get_posts():
-    """Route to return blog posts"""
+    """API Route to GET all Blog Posts"""
     return posts
 
 
-@app.get('/api/posts/{post_id}')
+@app.get('/api/posts/{post_id}', response_model=PostResponse)
 async def get_post(post_id: int):
-    """Route to return blog post by id"""
+    """API Route to GET a Blog Post by ID"""
     post = next((post for post in posts if post['id'] == post_id), None)
     if post is not None:
         return post
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 
+@app.post('/api/posts', response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+async def create_post(post: PostCreate):
+    """API Route to POST a New Blog Post"""
+    new_id = max(p['id'] for p in posts) + 1 if posts else 1
+    new_post = {
+        'id': new_id,
+        'author': post.author,
+        'title': post.title,
+        'content': post.content,
+        'date_posted': 'May 17, 2026'
+    }
+    posts.append(new_post)
+    return new_post
+
+
 @app.exception_handler(StarletteHTTPException)
-def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
+async def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
     """Method for handling general HTTP Exceptions"""
     message = (
         exception.detail
@@ -92,7 +108,7 @@ def general_http_exception_handler(request: Request, exception: StarletteHTTPExc
 
 
 @app.exception_handler(RequestValidationError)
-def validation_exception_handler(request: Request, exception: RequestValidationError):
+async def validation_exception_handler(request: Request, exception: RequestValidationError):
     """Method to handle validation errors"""
     if request.url.path.startswith("/api"):
         return JSONResponse(

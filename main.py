@@ -1,5 +1,5 @@
 """Main module for an example FastAPI project"""
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -39,3 +39,12 @@ async def home(request: Request):
 async def get_posts():
     """Route to return blog posts"""
     return posts
+
+
+@app.get('/api/posts/{post_id}')
+async def get_post(post_id: int):
+    """Route to return blog post by id"""
+    post = next((post for post in posts if post['id'] == post_id), None)
+    if post is not None:
+        return post
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")

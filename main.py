@@ -29,7 +29,7 @@ posts: list[dict] = [
 @app.get('/posts', include_in_schema=False)
 async def root(request: Request):
     """Home Page"""
-    return templates.TemplateResponse(request, "home.html", {'posts': posts})
+    return templates.TemplateResponse(request, "home.html", {'posts': posts, 'title': 'Home'})
 
 
 @app.get('/api/posts')

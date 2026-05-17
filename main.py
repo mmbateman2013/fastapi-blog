@@ -25,7 +25,8 @@ posts: list[dict] = [
 app = FastAPI()
 
 
-@app.get('/', response_class=HTMLResponse)
+@app.get('/', response_class=HTMLResponse, include_in_schema=False)
+@app.get('/posts', response_class=HTMLResponse, include_in_schema=False)
 async def root():
     """Main route of the API"""
     return f'<h1>{posts[0]['title']}</h1>'

@@ -28,9 +28,9 @@ posts: list[dict] = [
 ]
 
 
-@app.get('/', include_in_schema=False)
-@app.get('/posts', include_in_schema=False)
-async def root(request: Request):
+@app.get('/', include_in_schema=False, name="home")
+@app.get('/posts', include_in_schema=False, name="posts")
+async def home(request: Request):
     """Home Page"""
     return templates.TemplateResponse(request, "home.html", {'posts': posts, 'title': 'Home'})
 
